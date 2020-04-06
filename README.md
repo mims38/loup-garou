@@ -22,13 +22,75 @@ Je vous invite à regarder la vidéo de [Human Talks Paris](https://www.youtube.
 Quelques petites questions :
 
 - Résumer en une phrase l'intérêt de Material UI
+  Material UI permet d'utiliser des composants prêt à l'utilisation avec une experience utilisateur cool
 - Comment importer `material-ui` dans un fichier ?
+  import (ce qu'on veut importer) from '@material-ui/core/(chemin)';
 - Comment une application peut utiliser un thème à travers l'ensemble d'un projet ?
+  En mettant l'application dans des balises <MuiThemeProvider></MuiThemeProvider>
 - A quoi sert `createMuiTheme` ?
+  C'est pour personnalisé les composants de Material UI.
 - A quoi correspond `palette` ?
+  C'est pour modifier les couleurs en Material UI.
 - Comment re-définir des propriétés ?
+  Avec overrides
 - A quoi vous fait penser `withStyle` ? Comment l'utiliser ?
+  Pour utiliser withStyle il faut déjà l'importer depuis Material UI puis fournir un fichier style lors de l'export. Cela ressemble à un HOC.
 - Reproduire les deux boutons rouge et bleu présentées dans la vidéo.
+
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useSession } from '../services/User';
+import { createGame } from '../services/MasterGame';
+import Button from '@material-ui/core/Button';
+import { MuiThemeProvider, createMuiTheme, withStyles } from '@material-ui/core/styles';
+import {blue} from '@material-ui/core/colors'
+import {red} from '@material-ui/core/colors'
+
+
+const Start = (props) => {
+  const { user } = useSession();
+  return (
+    <MuiThemeProvider theme={theme}>
+    <div>
+      <Button color="primary" className={props.classes.myLeftButton}><Link to="/create" onClick={() => createGame(user)}> Nouvelle partie
+      </Link></Button>
+      <br />
+      <Button color="secondary"><Link to="/join">
+        Rejoindre une partie
+      </Link></Button>
+    </div>
+    </MuiThemeProvider>
+  );
+}
+
+const styles={
+  myLeftButton:{
+    backgroundColor: "blue"
+  }
+};
+
+const theme = createMuiTheme({
+  palette:{
+    primary: blue,
+    secondary: red,
+  },
+  typography : {
+    fontSize: 25,
+    fontFamily:'Montserrat',
+  },
+  overrides:{
+    MuiButton:{
+      root:{
+        backgroundColor: "red",
+        "&:hover":{backgroundColor: "yellow"}
+      }
+    }
+  }
+});
+
+export default withStyles(styles)(Start);
+
 
 
 ## Styled Components
@@ -38,12 +100,51 @@ De la même manière, voici une [vidéo](https://www.youtube.com/watch?v=mS0UKNB
 Quelques petites questions :
 
 - Qu'est-ce que le CSS-in-JS ?
+Le CSS-in-JS c'est intégrer le CSS directement dans le code JS
 - Qu'est-ce que sont les tagged templates (délimitées par des backticks) ?
+Ils permettent de définir des règles d'interpolation de chaînes personnalisées pour pouvoir styliser nos composants
 - Donner un exemple d'un bouton personnalisé avec et sans les tagged templates ?
+
+sans tagged templates
+fn(['je suis blablablabla'])
+avec tagged templates
+fn`je suis blablablablabla`
+
 - Comment utilise-t-on les props dans cette librarie ?
+  Par exemple, background-color: ${props => props.disabled ? 'red' : 'blue'};
+
 - Reprendre l'exemple du Material UI avec styled-components; l'écrire avec la composition et avec l'héritage.
+  
+  import React, {Component} from 'react';
+import styled from 'styled-components'
+
+
+class App extends Component {
+  render() {
+    return(
+      
+        <div>
+          <Button disabled={true}>Bleu</Button>
+          <Button>Rouge</Button>
+        </div>
+      
+      );
+  }
+}
+
+const Button = styled.button`
+  color:white;
+  
+  ${props => `
+  background-color : ${props.disabled ? 'blue' : 'red'};
+  `};
+  `
+  export default App;
+  
 - Quelles sont les fonctions du contexte de styled-components ?
 
+Le contexte de styled components permet la gestion de thèmes. On peut d'ailleurs surcharger des thèmes avec d'autres thème au sein même de notre application
+Le contexte peut également servir à combiner les compo react classiques avec styled components
 
 ## Mise en place du design
 
@@ -64,12 +165,78 @@ Activer l'authentification anonyme dans la console de Firebase.
 ### Découverte du code
 
 - Le code utilise des fonctions plutôt que des classes. Ecrire un bouton sous la forme d'une classe et d'une fonction. Retrouver les équivalences entre les méthodes des composants (telles que setState) et celles des fonctions ?
+
+Bouton sous la forme d'une fonction : 
+
+const Personne = props => (
+  <div>
+    <button>Hello, {props.name}</button>
+  </div>
+);
+
+
+Bouton sous la forme d'une classe :
+
+class Personne extends Component {
+  constructor(props){
+    super(props);
+    this.state = {
+      myState: true;
+    }
+  }
+  
+  render() {
+    return (
+      <div>
+        <h1>Hello Personne</h1>
+      </div>
+    );
+  }
+}
+export default Personne;
+
+
+
 - Comment récupérer les props dans une fonction ?
+
+const x = (props) => {
+
+
 - Dans `App.js`, identifier les différents producteurs de données. Retrouver leur définition. Quelles données partagent-ils à l'ensemble de l'application ?
+
+Les différents producteurs de données sont Game et User, les données partagées sont celles de firebase
+
 - Identifier les différentes pages de l'application. Décrire à l'aide d'une phrase le rôle de chacune d'entre elles.
+StartPage : Menu principal
+EndPage : Page de fin avec l'affichage des gagnants
+CreatePage : Page de création de partie
+NightPage : Page de la nuit
+ResultPage : Page qui affiche les morts après la nuit
+CodePage : Page pour créer un code pour faire rejoindre la partie à nos amis
+CastPage : Page de vote
+AlivePage : Page des vivants
+SpellPage : Page de la sorcière
+DeadPage : Page qu'un joueur voit lorsqu'il meurt
+
 - Pourquoi voit-on sur plusieurs pages "Chargement du master game en cours" ?
+
+Parce qu'on l'affiche 2 fois. Une fois dans Game.js et une autre dans GameMaster.js
+
 - Avec les classes, nous utilisions `withMyContext` pour s'inscrire aux données d'un provider. Identifier dans services/Game.js la fonction qui joue désormais ce rôle.
+
+  const {children} = props;
+  return (
+    <gameContext.Provider value={{game}}>
+      {children}
+    </gameContext.Provider>
+  );
+};
+
+
 - Dans `CodePage`, rappeler comment un formulaire gère les champs de remplissage des données.o
+
+
+onChange={e => setName(e.target.value)}
 
 ### Reprise du design
 
